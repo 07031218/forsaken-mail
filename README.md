@@ -1,19 +1,23 @@
-e-mail.dog
-电邮狗，为你提供免费安全高效的临时邮箱
+# e-mail.dog
 
-e-mail.dog实在Forsaken Mail基础上修改得到的一个临时邮箱服务。
+**电邮狗，为你提供免费安全高效的临时邮箱**
 
-→demo
+e-mail.dog实在[Forsaken Mail](https://github.com/denghongcai/forsaken-mail "Forsaken Mail")基础上修改得到的一个临时邮箱服务。
 
-搭建教程
-添加解析
+[→demo](https://e-mail.dog "→demo")
+
+## 搭建教程
+
+### 添加解析
 如果你想邮件地址格式都为*@xx.com的形式，则为xx.com设置MX记录，需要添加以下2条解析记录。
-
+```
 #MX记录
 xx.com MX 10 mx.xx.com
 #A记录 
 mx.xx.com A 服务器IP
-安装邮件程序
+```
+### 安装邮件程序
+```
 #安装git
 yum install git -y
  
@@ -47,20 +51,20 @@ pm2 start bin/www
 #设置开机启动
 pm2 startup
 pm2 save
-配置443端口
+```
+### 配置443端口
 如果你不习惯使用http//mx.xx.com:3000，或者想使用Https域名访问主界面，那我们可以使用Caddy反代。
 
 这里所使用的域名只能是上面设置MX记录的xx.com，并提前将域名A记录解析到服务器IP。
-
+```
 #安装caddy
 wget -N --no-check-certificate https://www.moerats.com/usr/shell/Caddy/caddy_install.sh && chmod +x caddy_install.sh && bash caddy_install.sh install http.filemanager
-
 #添加反代（全部内容是一个整体，请修改2个域名后一起复制到SSH运行）
 echo "xx.com {
  gzip
  tls admin@e-mail.dog
  proxy / mx.xx.com:3000
 }" > /usr/local/caddy/Caddyfile
-
 #启动caddy
 /etc/init.d/caddy start
+```
