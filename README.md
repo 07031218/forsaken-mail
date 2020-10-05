@@ -1,32 +1,66 @@
-Forsaken-Mail
-==============
-A self-hosted disposable mail service.
+e-mail.dog
+电邮狗，为你提供免费安全高效的临时邮箱
 
-[Online Demo](http://disposable.dhc-app.com)
+e-mail.dog实在Forsaken Mail基础上修改得到的一个临时邮箱服务。
 
-### Installation
+→demo
 
-#### Setting up your DNS correctly
+搭建教程
+添加解析
+如果你想邮件地址格式都为*@xx.com的形式，则为xx.com设置MX记录，需要添加以下2条解析记录。
 
-In order to receive emails, your smtp server address should be made available somewhere. Two records should be added to your DNS records. Let us pretend that we want to receive emails at ```*@subdomain.domain.com```:
-* First an MX record: ```subdomain.domain.com MX 10 mxsubdomain.domain.com```. This means that the mail server for addresses like ```*@subdomain.domain.com``` will be ```mxsubdomain.domain.com```.
-* Then an A record: ```mxsubdomain.domain.com A the.ip.address.of.your.mailin.server```. This tells at which ip address the mail server can be found.
+#MX记录
+xx.com MX 10 mx.xx.com
+#A记录 
+mx.xx.com A 服务器IP
+安装邮件程序
+#安装git
+yum install git -y
+ 
+#安装nvm
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+ 
+#安装nodejs和 npm
+nvm install 6.10.0
+ 
+#查看nodejs版本是否正确，显示 6.10.0
+node -v
+ 
+#下载项目源码
+git clone https://github.com/nutterchen/forsaken-mail.git
+cd forsaken-mail
+ 
+#安装项目需要的库
+npm install
+ 
+#安装pm2工具
+npm install -g pm2
+ 
+#禁用postfix
+postfix stop
+chkconfig --level 2345 postfix off
+ 
+#启动项目
+pm2 start bin/www
+#设置开机启动
+pm2 startup
+pm2 save
+配置443端口
+如果你不习惯使用http//mx.xx.com:3000，或者想使用Https域名访问主界面，那我们可以使用Caddy反代。
 
-You can fire up Mailin (see next section) and use an [smtp server tester](http://mxtoolbox.com/diagnostic.aspx) to verify that everything is correct.
+这里所使用的域名只能是上面设置MX记录的xx.com，并提前将域名A记录解析到服务器IP。
 
-#### Let's Go
-general way:
-```
-npm install && npm start
-```
-if you want to run this inside a docker container
-```
-docker build -t denghongcai/forsaken-mail .
-docker run --name forsaken-mail -d -p 25:25 -p 3000:3000 denghongcai/forsaken-mail
-```
-Open your browser and type in
-```
-http://localhost:3000
-```
+#安装caddy
+wget -N --no-check-certificate https://www.moerats.com/usr/shell/Caddy/caddy_install.sh && chmod +x caddy_install.sh && bash caddy_install.sh install http.filemanager
 
-Enjoy!
+#添加反代（全部内容是一个整体，请修改2个域名后一起复制到SSH运行）
+echo "xx.com {
+ gzip
+ tls admin@e-mail.dog
+ proxy / mx.xx.com:3000
+}" > /usr/local/caddy/Caddyfile
+
+#启动caddy
+/etc/init.d/caddy start
